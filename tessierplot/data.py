@@ -531,6 +531,12 @@ class Data(pandas.DataFrame):
         return newdataframe
     
     @property
+    def run_id(self):
+        if self._header and 'measname' in self._header[-1]:
+            return str(self._header[-1]['measname'])
+        return None
+
+    @property
     def coordkeys(self):
         coord_keys = [i['name'] for n,i in enumerate(self._header) if ('column' in self._header[n] and i['type']=='coordinate')]
         return coord_keys

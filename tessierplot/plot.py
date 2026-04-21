@@ -689,8 +689,8 @@ class plotR(object):
 					else:
 						title = '\n'.join([title, '{:s}: {:g} {:s}'.format(unique_labels[h],getattr(data_slice,i).iloc[0], coord_units_raw[coord_keys_raw.index(i)] )])
 
-				meas_id_match = re.search(r'(\d+)', os.path.basename(self.name))
-				meas_id = '#{:s} '.format(meas_id_match.group(1)) if meas_id_match else ''
+				run_id = self.data.run_id
+				meas_id = '#{:s} '.format(run_id) if run_id is not None else ''
 
 				if 'notitle' not in style:
 					if not self.isthumbnail:
