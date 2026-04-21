@@ -320,7 +320,7 @@ class tessierView(object):
                     </br>
                     <input type="checkbox" name="flipaxis" value="{{"\\'flipaxes\\',"|e}} ">Flip axes
                     </br>
-                    <input type="checkbox" name="killpulsetube" value="{{"\\'killpulsetube\\',"|e}} ">Kill pulsetube noise
+                    <input type="checkbox" name="killpulsetube" value="{{"\\'killpulsetube\\',"|e}} " style="display:none">
                     </br>
                     {% if (item.higherdim_coords != None) %}
                         {% for key in item.higherdim_coords[0] %}
