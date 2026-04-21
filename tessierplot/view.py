@@ -186,6 +186,8 @@ class tessierView(object):
                 ext = ext2+ext1
                 if len(measname) < len(measfiledir):
                     measname = measfiledir
+                meas_id_match = re.search(r'(\d+)', measname)
+                meas_id = meas_id_match.group(1) if meas_id_match else measname
                 if isinfilterstring:    #liable for improvement
                     if self._showfilenames:
                         print(fullpath)
@@ -216,8 +218,9 @@ class tessierView(object):
                                 comment = 'n.a.'
                             self._allthumbs.append({'datapath':fullpath,
                                                  'thumbpath':thumbpath_html,
-                                                 'datedir':datedir, 
+                                                 'datedir':datedir,
                                                  'measname':measname,
+                                                 'meas_id':meas_id,
                                                  'comment':comment,
                                                  'value_keys':value_keys,
                                                  'higherdim_coords':higherdim_coords})
@@ -239,11 +242,12 @@ class tessierView(object):
         
         #unobfuscate the file relative to the working directory
         #since files are served from ipyhton notebook from ./files/
-        all_relative = [{ 
+        all_relative = [{
                             'thumbpath':'./files/'+os.path.relpath(k['thumbpath'],start=os.getcwd()),
-                            'datapath': k['datapath'], 
-                            'datedir': k['datedir'], 
+                            'datapath': k['datapath'],
+                            'datedir': k['datedir'],
                             'measname': k['measname'],
+                            'meas_id': k['meas_id'],
                             'comment': k['comment'],
                             'value_keys': k['value_keys'],
                             'higherdim_coords': k['higherdim_coords'] } for k in self._allthumbs]
@@ -273,8 +277,10 @@ class tessierView(object):
         {% endif %}
             <div id='{{ item.datapath }}' class='col'>  {# mousehover filename and measurement comment #}
                 <div class='name'> {{ item.measname + '\n' + 'Comment: ' + item.comment }} </div>
+                <div class='meas_id'>{{ item.meas_id }}</div>
+
                 <div class='thumb'>
-                        <img src="{{ item.thumbpath }}?{{ nowstring }}"/> 
+                        <img src="{{ item.thumbpath }}?{{ nowstring }}"/>
                 </div>
                 <div class='controls'>
                     <button id='{{ item.datapath }}' onClick='toclipboard(this.id)'>Filename to clipboard</button>
@@ -560,6 +566,12 @@ class tessierView(object):
         img{
             width:75%;
             height:auto;
+            }
+        .col .meas_id {
+            font-size: 9pt;
+            text-align: center;
+            color: #333;
+            padding-bottom: 2px;
             }
         </style>
         """
