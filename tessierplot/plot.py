@@ -43,7 +43,6 @@ from quantiphy import Quantity
 import numpy as np
 import math
 import re
-import os
 import matplotlib.ticker as ticker
 import pandas as pd
 import copy
@@ -689,18 +688,9 @@ class plotR(object):
 					else:
 						title = '\n'.join([title, '{:s}: {:g} {:s}'.format(unique_labels[h],getattr(data_slice,i).iloc[0], coord_units_raw[coord_keys_raw.index(i)] )])
 
-				try:
-					run_id = self.data.run_id
-					if run_id is None:
-						m = re.search(r'(\d+)', os.path.basename(self.name))
-						run_id = m.group(1) if m else None
-					meas_id = '#{:s} '.format(run_id) if run_id is not None else ''
-				except Exception:
-					meas_id = ''
-
 				if 'notitle' not in style:
 					if not self.isthumbnail:
-						ax.set_title(meas_id + title, loc='left', pad=32, weight='bold')
+						ax.set_title(title, loc='left', pad=32, weight='bold')
 					if self.isthumbnail:
 						ax.set_title(titlecube + title, loc='left', pad=0, weight='bold',fontsize=10)						
 				# create an axes on the right side of ax. The width of cax will be 5%
