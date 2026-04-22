@@ -230,12 +230,24 @@ class qcodes_parser(dat_parser):
                 comment = 'n.a.'
             else:
                 comment = comment.replace('# Comment: ', '')
+
+            # Extract run_id from folder name (format: NNN_timestamp_name)
+            run_id = None
+            try:
+                folder_name = os.path.basename(os.path.dirname(self._file))
+                prefix = folder_name.split('_')[0]
+                if prefix.isdigit():
+                    run_id = int(prefix)
+            except Exception:
+                pass
+            
             headertitledict = {
             'measname'   : titleline[0][2:],
             'experiment' : titleline[1].split(':')[1],
             'samplename' : titleline[2].split(':')[1],
             'nvals'      : int(titleline[3].split(':')[1]),
             'samplingrate' : float(titleline[4].split(':')[1]) if len(titleline) > 4 else None,
+            'run_id'     : run_id,
             'comment'    : comment
             }
             header.append(headertitledict)
@@ -531,12 +543,6 @@ class Data(pandas.DataFrame):
         return newdataframe
     
     @property
-    def run_id(self):
-        if self._header and 'measname' in self._header[-1]:
-            return str(self._header[-1]['measname'])
-        return None
-
-    @property
     def coordkeys(self):
         coord_keys = [i['name'] for n,i in enumerate(self._header) if ('column' in self._header[n] and i['type']=='coordinate')]
         return coord_keys
@@ -552,6 +558,10 @@ class Data(pandas.DataFrame):
         samplingrate = [i['samplingrate'] for n,i in enumerate(self._header) if ('measname' in self._header[n])]
         return samplingrate[0]
     
+    @property
+    def run_id(self):
+        rid = [i.get('run_id') for n,i in enumerate(self._header) if ('measname' in self._header[n])]
+        return rid[0] if rid else None
 
     @property
     def coordkeys_n(self):

@@ -88,12 +88,12 @@ _raw_filter = ['raw',
 			   'trit.temp', 
 			   'sr1.y',
 			   'sr1.r', 
-		       'sr1.freq', 
+			   'sr1.freq', 
 			   'sr1.amp', 
 			   'sr1.theta',
 			   'sr2.y',
-		       'sr2.r', 
-		       'sr2.freq', 
+			   'sr2.r', 
+			   'sr2.freq', 
 			   'sr2.amp', 
 			   'sr2.theta',
 			   'KBG.i',
@@ -210,13 +210,13 @@ class plotR(object):
 		
 		# Loop that recursively throws out outliers until remaining data fits in 2.5 times the std
 		while False in booleanmask: 
-		    if np.std(datastd) < 0.1*np.mean(np.abs(datastd)): # Check that data has a std larger than 10 of its mean, if not, break loop
-		    	break
-		    booleanmask = abs(datastd - np.mean(datastd)) < m * np.std(datastd) # make boolean mask based with outliers marked as False
-		    if np.sum(booleanmask) < 0.8*len(data): #Loop to break the recursive std determination
-		    	break
-		    datastd = datastd[booleanmask] # apply mask to data
-		
+			if np.std(datastd) < 0.1*np.mean(np.abs(datastd)): # Check that data has a std larger than 10 of its mean, if not, break loop
+				break
+			booleanmask = abs(datastd - np.mean(datastd)) < m * np.std(datastd) # make boolean mask based with outliers marked as False
+			if np.sum(booleanmask) < 0.8*len(data): #Loop to break the recursive std determination
+				break
+			datastd = datastd[booleanmask] # apply mask to data
+
 		#values, edges = np.histogram(datastd, 256) # bin for 256 colors in colorscale
 		stretchfactor = .05 # stretching colorscale so that the data sits comfortably within its bounds
 		cminlim = np.min(datastd)-((np.max(datastd)-np.min(datastd))*stretchfactor)
@@ -689,10 +689,11 @@ class plotR(object):
 						title = '\n'.join([title, '{:s}: {:g} {:s}'.format(unique_labels[h],getattr(data_slice,i).iloc[0], coord_units_raw[coord_keys_raw.index(i)] )])
 
 				if 'notitle' not in style:
+					run_id_prefix = '#{:03d}  '.format(self.data.run_id) if self.data.run_id is not None else ''
 					if not self.isthumbnail:
-						ax.set_title(title, loc='left', pad=32, weight='bold')
+						ax.set_title(run_id_prefix + title, loc='left', pad=32, weight='bold')
 					if self.isthumbnail:
-						ax.set_title(titlecube + title, loc='left', pad=0, weight='bold',fontsize=10)						
+						ax.set_title(run_id_prefix + titlecube + title, loc='left', pad=0, weight='bold',fontsize=10)					
 				# create an axes on the right side of ax. The width of cax will be 5%
 				# of ax and the padding between cax and ax will be fixed at 0.05 inch.
 				if drawCbar:
@@ -740,7 +741,7 @@ class plotR(object):
 				cnt+=1 #counter for subplots
 		
 		
-		if self.fig and (mpl.get_backend() in [qtaggregator , 'nbAgg']):
+		if self.fig and ('qt' in mpl.get_backend().lower() or mpl.get_backend() == 'nbAgg'):
 			self.toggleFiddle()
 			self.toggleLinedraw()
 			self.toggleLinecut()
@@ -1002,8 +1003,7 @@ class plotR(object):
 		self.linedraw=Linedraw(self.fig)
 
 		self.fig.drawbutton = toggleButton('draw', self.linedraw.connect)
-		topwidget = self.fig.canvas.window()
-		toolbar = topwidget.children()[1]
+		toolbar = self.fig.canvas.manager.toolbar
 		action = toolbar.addWidget(self.fig.drawbutton)
 
 		#attach to the relevant figure to make sure the object does not go out of scope
@@ -1012,8 +1012,7 @@ class plotR(object):
 	def toggleLinecut(self):
 		self.linecut=Linecut(self.fig,self)
 		self.fig.cutbutton = toggleButton('cut', self.linecut.connect)
-		topwidget = self.fig.canvas.window()
-		toolbar = topwidget.children()[1]
+		toolbar = self.fig.canvas.manager.toolbar
 		action = toolbar.addWidget(self.fig.cutbutton)
 
 		#attach to the relevant figure to make sure the object does not go out of scope
@@ -1022,8 +1021,7 @@ class plotR(object):
 	def toggleWaterfall(self):
 		self.waterfall=Waterfall(self.fig,self)
 		self.fig.waterfallbutton = toggleButton('waterfall', self.waterfall.connect)
-		topwidget = self.fig.canvas.window()
-		toolbar = topwidget.children()[1]
+		toolbar = self.fig.canvas.manager.toolbar
 		action = toolbar.addWidget(self.fig.waterfallbutton)
 
 		#attach to the relevant figure to make sure the object does not go out of scope
@@ -1034,8 +1032,7 @@ class plotR(object):
 
 		self.fiddle = Fiddle(self.fig)
 		self.fig.fiddlebutton = toggleButton('fiddle', self.fiddle.connect)
-		topwidget = self.fig.canvas.window()
-		toolbar = topwidget.children()[1]
+		toolbar = self.fig.canvas.manager.toolbar
 		action = toolbar.addWidget(self.fig.fiddlebutton)
 
 		#attach to the relevant figure to make sure the object does not go out of scope
