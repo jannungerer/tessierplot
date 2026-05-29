@@ -245,7 +245,8 @@ class qcodes_parser(dat_parser):
             exp_id = None
             try:
                 exp_folder = os.path.basename(os.path.dirname(os.path.dirname(self._file)))
-                m = re.match(r'Exp(\d+)', exp_folder)
+                # case-insensitive: on Windows the path may be an upper-cased 8.3 short name (e.g. EXP09(~1)
+                m = re.match(r'Exp(\d+)', exp_folder, re.IGNORECASE)
                 if m:
                     exp_id = int(m.group(1))
             except Exception:
