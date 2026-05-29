@@ -241,6 +241,16 @@ class qcodes_parser(dat_parser):
             except Exception:
                 pass
             
+            # Extract experiment id from parent folder name (format: ExpNN(name)-Sample(name))
+            exp_id = None
+            try:
+                exp_folder = os.path.basename(os.path.dirname(os.path.dirname(self._file)))
+                m = re.match(r'Exp(\d+)', exp_folder)
+                if m:
+                    exp_id = int(m.group(1))
+            except Exception:
+                pass
+
             headertitledict = {
             'measname'   : titleline[0][2:],
             'experiment' : titleline[1].split(':')[1],
@@ -248,6 +258,7 @@ class qcodes_parser(dat_parser):
             'nvals'      : int(titleline[3].split(':')[1]),
             'samplingrate' : float(titleline[4].split(':')[1]) if len(titleline) > 4 else None,
             'run_id'     : run_id,
+            'exp_id'     : exp_id,
             'comment'    : comment
             }
             header.append(headertitledict)
@@ -562,6 +573,21 @@ class Data(pandas.DataFrame):
     def run_id(self):
         rid = [i.get('run_id') for n,i in enumerate(self._header) if ('measname' in self._header[n])]
         return rid[0] if rid else None
+
+    @property
+    def exp_id(self):
+        eid = [i.get('exp_id') for n,i in enumerate(self._header) if ('measname' in self._header[n])]
+        return eid[0] if eid else None
+
+    @property
+    def run_label(self):
+        # Title prefix like '#03-322  ': exp id + run id when both known,
+        # falls back to '#322  ' if no exp id, and '' if there is no run id.
+        if self.run_id is None:
+            return ''
+        if self.exp_id is not None:
+            return '#{:02d}-{:03d}  '.format(self.exp_id, self.run_id)
+        return '#{:03d}  '.format(self.run_id)
 
     @property
     def coordkeys_n(self):
