@@ -689,7 +689,7 @@ class plotR(object):
 						title = '\n'.join([title, '{:s}: {:g} {:s}'.format(unique_labels[h],getattr(data_slice,i).iloc[0], coord_units_raw[coord_keys_raw.index(i)] )])
 
 				if 'notitle' not in style:
-					run_id_prefix = '#{:03d}  '.format(self.data.run_id) if self.data.run_id is not None else ''
+					run_id_prefix = self.data.run_label
 					if not self.isthumbnail:
 						ax.set_title(run_id_prefix + title, loc='left', pad=32, weight='bold')
 					if self.isthumbnail:
@@ -949,6 +949,12 @@ class plotR(object):
 					if ax:
 						ax.set_xlabel(xaxislabelwithunit)
 						ax.set_ylabel(yaxislabelwithunit)
+						if 'notitle' not in style:
+							run_id_prefix = self.data.run_label
+							if not self.isthumbnail:
+								ax.set_title(run_id_prefix + title, loc='left', pad=32, weight='bold')
+							if self.isthumbnail:
+								ax.set_title(run_id_prefix + title, loc='left', pad=0, weight='bold', fontsize=10)
 					if not (xlims==None) or not (ylims==None):
 						ax.set_xlim(_xlims)
 						ax.set_ylim(_ylims)
