@@ -241,14 +241,23 @@ class qcodes_parser(dat_parser):
             except Exception:
                 pass
             
-            # Extract experiment id from parent folder name (format: ExpNN(name)-Sample(name))
-            exp_id = None
+            # Extract database number from the great-grandparent folder name (format: <name>_partNN).
+            # Structure is <db_folder>/ExpNN(...)/RRR_.../<file>.dat, so the db folder is three levels
+            # up. The base database has no _part suffix and is numbered 1.
+            db_number = None
             try:
-                exp_folder = os.path.basename(os.path.dirname(os.path.dirname(self._file)))
-                # case-insensitive: on Windows the path may be an upper-cased 8.3 short name (e.g. EXP09(~1)
-                m = re.match(r'Exp(\d+)', exp_folder, re.IGNORECASE)
-                if m:
-                    exp_id = int(m.group(1))
+                db_path = self._file
+                if os.name == 'nt':
+                    # On Windows the path may be an 8.3 short name (e.g. 260307~1) that has dropped the
+                    # _partNN suffix; resolve back to the long name so the part number survives.
+                    try:
+                        import win32api
+                        db_path = win32api.GetLongPathName(self._file)
+                    except Exception:
+                        db_path = self._file
+                db_folder = os.path.basename(os.path.dirname(os.path.dirname(os.path.dirname(db_path))))
+                m = re.search(r'_part(\d+)', db_folder, re.IGNORECASE)
+                db_number = int(m.group(1)) if m else 1
             except Exception:
                 pass
 
@@ -259,7 +268,7 @@ class qcodes_parser(dat_parser):
             'nvals'      : int(titleline[3].split(':')[1]),
             'samplingrate' : float(titleline[4].split(':')[1]) if len(titleline) > 4 else None,
             'run_id'     : run_id,
-            'exp_id'     : exp_id,
+            'db_number'  : db_number,
             'comment'    : comment
             }
             header.append(headertitledict)
@@ -576,18 +585,18 @@ class Data(pandas.DataFrame):
         return rid[0] if rid else None
 
     @property
-    def exp_id(self):
-        eid = [i.get('exp_id') for n,i in enumerate(self._header) if ('measname' in self._header[n])]
-        return eid[0] if eid else None
+    def db_number(self):
+        dbn = [i.get('db_number') for n,i in enumerate(self._header) if ('measname' in self._header[n])]
+        return dbn[0] if dbn else None
 
     @property
     def run_label(self):
-        # Title prefix like '#03-322  ': exp id + run id when both known,
-        # falls back to '#322  ' if no exp id, and '' if there is no run id.
+        # Title prefix like '#06-047  ': database (part) number + run id when both
+        # known, falls back to '#047  ' if no db number, and '' if there is no run id.
         if self.run_id is None:
             return ''
-        if self.exp_id is not None:
-            return '#{:02d}-{:03d}  '.format(self.exp_id, self.run_id)
+        if self.db_number is not None:
+            return '#{:02d}-{:03d}  '.format(self.db_number, self.run_id)
         return '#{:03d}  '.format(self.run_id)
 
     @property
